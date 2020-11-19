@@ -194,27 +194,19 @@ function loadMap() {
     map.addLayer(clusteringLayer);
   }
 
-
   function showMarkers(){
     startClustering(map, markers)
   }
 
-  /*var testPolygon = new H.map.Polygon(
-    new H.geo.Polygon(
-      new H.geo.LineString(
-        [40.54071645525099, -4.165761533809863, 0, 40.48744345410659, -3.61918942886437, 0, 40.1615621829243, -3.6472187675795236, 0, 40.26323486562559, -4.17977620316744, 0]
-      )
-    ),
-    {
-      style: {fillColor: 'rgba(150, 0, 0, .8)', lineWidth: 0}
-    }
-  )
-
-  map.addObject(testPolygon)*/
 
   showMarkers()
 
-  //map.addObject(polygon);
+
+  /**
+   * 
+   *  Create Control Button
+   * 
+   */
 
   var inherits = function(childCtor, parentCtor) {   
     function tempCtor() {}  
@@ -237,14 +229,8 @@ function loadMap() {
 
     H.ui.Control.call(this);   
     this.onButtonClick = this.onButtonClick.bind(this);
-
-    // create a button element   
+ 
     this.increaseBtn_ = new H.ui.base.Button({
-      // 'label': '<svg class="H_icon H_icon" viewBox="0 0 25 25">' +
-      //   '<path d="M 18.5,11 H 14 V 6.5 c 0,-.8 -.7,-1.5 -1.5,-1.5 -.8,0 -1.5,.7 -1.5,1.5 V 11 H 6' +
-      //   '.5 C 5.7,11 5,11.7 5,12.5 5,13.3 5.7,14 6.5,14 H 11 v 4.5 c 0,.8 .7,1.5 1.5,1.5 .8,0 1.5,' +
-      //   '-.7 1.5,-1.5 V 14 h 4.5 C 19.3,14 20,13.3 20,12.5 20,11.7 19.3,11 18.5,11 z" />' +
-      //   '</svg>',
       'label': '<svg class="H_icon H_icon" viewBox="0 0 25 25">' +
         '<polygon points="10,0 25,10 18,18 0,25"/>' +
         '</svg>',
@@ -268,6 +254,12 @@ function loadMap() {
 
     var poligonControl = new PoligonControl(); 
     ui.addControl('poligonControl', poligonControl);
+
+  /**
+   * 
+   *  End Create Control Button
+   * 
+   */
 
   }
 
