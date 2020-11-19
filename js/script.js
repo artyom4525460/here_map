@@ -1,6 +1,5 @@
 import * as data from './sample.json'
-import * as data from './config'
-import { config } from './config';
+import { config } from './config'
 
 const markers = data.result
 
@@ -264,13 +263,8 @@ function loadMap() {
     var poligonControl = new PoligonControl(); 
     ui.addControl('poligonControl', poligonControl);
 
-  //#endregion
   }
 
 document.addEventListener('DOMContentLoaded', function() {
   loadMap()
 });
-
-// window.onload = function(){
-//   loadMap()
-// }
