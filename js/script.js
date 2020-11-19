@@ -52,6 +52,7 @@ function loadMap() {
   var polyline = null
   var polygon = null
   var allowPoligonDraw = false
+  var result = []
 
   map.addEventListener('pointerdown', function(evt){
     if( !allowPoligonDraw ){
@@ -122,6 +123,7 @@ function loadMap() {
 
     map.removeLayer(clusteringLayer)
     startClustering(map, markers, polygon)
+    console.log(result)  //  output result
   }
 
   function removePolygon() {
@@ -138,6 +140,7 @@ function loadMap() {
     map.removeLayer(clusteringLayer)
     startClustering(map, markers)
     poligonControl.setDisabled(false)
+    result = []
   }
 
   var clusteredDataProvider
@@ -173,6 +176,9 @@ function loadMap() {
       }
     })
     .map(function (item) {
+      if(polygon !== null){
+        result.push(item)
+      }
       return new H.clustering.DataPoint(parseFloat(item.latitude), parseFloat(item.longitude));
     });
   
