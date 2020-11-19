@@ -1,0 +1,22 @@
+{
+  "name": "here_map",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "watch": "webpack --watch --progress"
+  },
+  "author": "Artyom Zhukov <artyom4525460@yandex.ru>",
+  "license": "ISC",
+  "dependencies": {
+    "@here/maps-api-for-javascript": "^1.20.1",
+    "@turf/boolean-point-in-polygon": "^6.0.1"
+  },
+  "devDependencies": {
+    "turf": "^3.0.14",
+    "webpack": "^5.5.0",
+    "webpack-cli": "^4.2.0"
+  }
+}
