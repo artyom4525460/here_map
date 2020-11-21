@@ -52,6 +52,7 @@ function loadMap() {
   var polygon = null
   var allowPoligonDraw = false
   var result = []
+  var nextPoint = false
 
   var drawButton = document.getElementById('drawButton')
   var cancelDrawButton = document.getElementById('cancelDrawButton')
@@ -60,6 +61,7 @@ function loadMap() {
     e.preventDefault()
     if(polygon !== null){
       map.removeObject(polygon)
+      finishedPolygon = false
       polygon = null
       polyline = null
       poligonMarkers.map(function(item){
@@ -75,10 +77,18 @@ function loadMap() {
     cancelDrawButton.style.display = 'block'
     drawButton.style.display = 'none'
   })
+
   cancelDrawButton.addEventListener('click', function(e){
     e.preventDefault()
     
-    map.removeObject(polyline)
+    if(polygon !== null){
+      map.removeObject(polygon)
+      polygon = null
+    }
+
+    if(polyline !== null){
+      map.removeObject(polyline)
+    }
     polyline = null
     poligonMarkers.map(function(item){
       map.removeObject(item)
@@ -97,12 +107,14 @@ function loadMap() {
     if( !allowPoligonDraw ){
       return
     }
-    if(polygon !== null){
+    /*if(polygon !== null){
       return
-    }
+    }*/
     if(evt.target == poligonMarkers[0]){
       return
     }
+    nextPoint = true
+
     let firstFlag = poligonMarkers.length == 0
     var coord = map.screenToGeo(evt.currentPointer.viewportX, evt.currentPointer.viewportY);
     let currentMarker = new H.map.Marker(
@@ -116,15 +128,25 @@ function loadMap() {
     )
     map.addObject(currentMarker)
     poligonMarkers.push(currentMarker)
+    if(lineCoords.getLatLngAltArray().length > poligonMarkers.length){
+      //lineCoords.removeLatLngAlt(3)
+    }
     lineCoords.pushLatLngAlt(coord.lat.toFixed(4), coord.lng.toFixed(4), 0)
     if( polyline !== null ){
       polyline.setGeometry(lineCoords)
     }
+    /*if(poligon !== null){
+      polygon.setGeometry(new H.geo.Polygon(lineCoords),
+      {
+        style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
+      })
+    }*/
+    console.log(poligonMarkers)
     if( poligonMarkers.length == 2 ){
-      polyline = new H.map.Polyline(
+      /*polyline = new H.map.Polyline(
         lineCoords, { style: { lineWidth: 2, strokeColor: 'rgb(150,150,150)' }}
-      )
-      map.addObject(polyline)
+      )*/
+      //map.addObject(polyline)
     }
 
     if(firstFlag){
@@ -132,14 +154,88 @@ function loadMap() {
     }
   })
 
+  map.addEventListener('pointermove', function(evt){
+    if(!allowPoligonDraw){
+      return false
+    }
+    if( poligonMarkers.length == 1 ){
+      let coord = map.screenToGeo(evt.currentPointer.viewportX, evt.currentPointer.viewportY);
+      console.log(lineCoords)
+      if(lineCoords.getLatLngAltArray().length == 3){
+        lineCoords.pushLatLngAlt(coord.lat.toFixed(4), coord.lng.toFixed(4), 0)
+        polyline = new H.map.Polyline(
+          lineCoords, { style: { lineWidth: 1, strokeColor: 'rgb(0,0,255)' }}
+        )
+        map.addObject(polyline)
+      }
+      else{
+        lineCoords.removeLatLngAlt(3)
+        lineCoords.pushLatLngAlt(coord.lat.toFixed(4), coord.lng.toFixed(4), 0)
+        polyline.setGeometry(lineCoords)
+        
+      }
+    }
+
+
+    if(poligonMarkers.length > 1){
+      console.log('move2')
+      let coord = map.screenToGeo(evt.currentPointer.viewportX, evt.currentPointer.viewportY);
+      console.log( (lineCoords.getLatLngAltArray().length / 3), poligonMarkers.length)
+
+      if((lineCoords.getLatLngAltArray().length / 3) == poligonMarkers.length){
+        lineCoords.pushLatLngAlt(coord.lat.toFixed(4), coord.lng.toFixed(4), 0)
+        if(polygon === null){
+          polygon = new H.map.Polygon(
+            new H.geo.Polygon(lineCoords),
+            {
+              style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
+            }
+          )
+          map.addObject(polygon)
+        }
+        else{
+          polygon.setGeometry(new H.geo.Polygon(lineCoords),
+          {
+            style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
+          })
+        }
+        console.log(lineCoords)
+      }
+      else{
+      console.log('lineCoords')
+        if(polygon === null){
+          polygon = new H.map.Polygon(
+            new H.geo.Polygon(lineCoords),
+            {
+              style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
+            }
+          )
+          map.addObject(polygon)
+        }
+
+        lineCoords.removeLatLngAlt(lineCoords.getLatLngAltArray().length - 3)
+        lineCoords.pushLatLngAlt(coord.lat.toFixed(4), coord.lng.toFixed(4), 0)
+        nextPoint = false
+        console.log(lineCoords.getLatLngAltArray())
+        polygon.setGeometry(new H.geo.Polygon(lineCoords),
+        {
+          style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
+        })
+      }
+    }
+  })
+
+  var finishedPolygon = false
+
   function clickFirstMarker(evt){
     evt.preventDefault()
     if(poligonMarkers.length <= 2){
       return
     }
     else{
-      if(polygon === null){
-        createPolygon()
+      if(finishedPolygon === false){
+        //createPolygon()
+        finishPolygon()
         allowPoligonDraw = false
       }
       else{
@@ -147,6 +243,22 @@ function loadMap() {
       }
     }
     
+  }
+
+  function finishPolygon(){
+    finishedPolygon = true
+    console.log(lineCoords)
+    polygon.setGeometry(new H.geo.Polygon(lineCoords),
+    {
+      style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
+    })
+    map.removeObject(polyline)
+    polyline = null
+    poligonMarkers[0].setIcon(new H.map.Icon(svgCircleFirstCross, { anchor: {x: 20, y: 20} } ) )
+    startClustering(map, markers, polygon)
+    console.log(result)  //  output result
+    cancelDrawButton.style.display = 'none'
+    drawButton.style.display = 'block'
   }
 
   function createPolygon() {
@@ -168,11 +280,22 @@ function loadMap() {
   }
 
   function removePolygon() {
-    map.removeObject(polygon)
+    if(polygon !== null){
+      map.removeObject(polygon)
+      polygon = null
+    }
+    if(polyline !== null){
+      map.removeObject(polyline)
+      polyline = null
+    }
+    
+    finishedPolygon = false
     polygon = null
     polyline = null
     poligonMarkers.map(function(item){
-      map.removeObject(item)
+      if(item != null){
+        map.removeObject(item)
+      }
     })
     poligonMarkers = []
     lineCoords = new H.geo.LineString()
