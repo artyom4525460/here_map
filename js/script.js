@@ -33,18 +33,17 @@ function loadMap() {
   var behavior = new H.mapevents.Behavior(mapEvents);
   
 
-  var svgCircle = '<svg width="10" height="10" version="1.1" xmlns="http://www.w3.org/2000/svg">' +
-      '<circle cx="5" cy="5" r="3" fill="transparent" stroke="red" stroke-width="3"/>' +
+  var svgCircle = '<svg width="1" height="1" version="1.1" xmlns="http://www.w3.org/2000/svg">' +
       '</svg>'
   
   var svgCircleFirst = '<svg width="40" height="40" version="1.1" xmlns="http://www.w3.org/2000/svg">' +
-      '<circle cx="20" cy="20" r="10" fill="transparent" stroke="red" stroke-width="3"/>' +
+      '<circle cx="20" cy="20" r="10" fill="white" stroke="black" stroke-width="3"/>' +
       '</svg>'
   
   var svgCircleFirstCross = '<svg width="40" height="40" version="1.1" xmlns="http://www.w3.org/2000/svg">' +
-  '<circle cx="20" cy="20" r="10" fill="white" stroke="red" stroke-width="3"/>' +
-  '<line x1="25" y1="25" x2="15" y2="15" stroke="red" stroke-width="3"/>' + 
-  '<line x1="25" y1="15" x2="15" y2="25" stroke="red" stroke-width="3"/>' + 
+  '<circle cx="20" cy="20" r="10" fill="black" stroke="black" stroke-width="3"/>' +
+  '<line x1="25" y1="25" x2="15" y2="15" stroke="white" stroke-width="3"/>' + 
+  '<line x1="25" y1="15" x2="15" y2="25" stroke="white" stroke-width="3"/>' + 
   '</svg>'
 
   var lineCoords = new H.geo.LineString()
@@ -53,6 +52,46 @@ function loadMap() {
   var polygon = null
   var allowPoligonDraw = false
   var result = []
+
+  var drawButton = document.getElementById('drawButton')
+  var cancelDrawButton = document.getElementById('cancelDrawButton')
+  console.log(drawButton)
+  drawButton.addEventListener('click', function(e){
+    e.preventDefault()
+    if(polygon !== null){
+      map.removeObject(polygon)
+      polygon = null
+      polyline = null
+      poligonMarkers.map(function(item){
+        map.removeObject(item)
+      })
+      poligonMarkers = []
+      lineCoords = new H.geo.LineString()
+      map.removeLayer(clusteringLayer)
+      result = []
+    }
+    allowPoligonDraw = true
+    map.removeLayer(clusteringLayer)
+    cancelDrawButton.style.display = 'block'
+    drawButton.style.display = 'none'
+  })
+  cancelDrawButton.addEventListener('click', function(e){
+    e.preventDefault()
+    
+    map.removeObject(polyline)
+    polyline = null
+    poligonMarkers.map(function(item){
+      map.removeObject(item)
+    })
+    poligonMarkers = []
+    lineCoords = new H.geo.LineString()
+    map.removeLayer(clusteringLayer)
+    startClustering(map, markers)
+    result = []
+
+    cancelDrawButton.style.display = 'none'
+    drawButton.style.display = 'block'
+  })
 
   map.addEventListener('pointerdown', function(evt){
     if( !allowPoligonDraw ){
@@ -83,7 +122,7 @@ function loadMap() {
     }
     if( poligonMarkers.length == 2 ){
       polyline = new H.map.Polyline(
-        lineCoords, { style: { lineWidth: 4 }}
+        lineCoords, { style: { lineWidth: 2, strokeColor: 'rgb(150,150,150)' }}
       )
       map.addObject(polyline)
     }
@@ -114,7 +153,7 @@ function loadMap() {
     polygon = new H.map.Polygon(
       new H.geo.Polygon(lineCoords),
       {
-        style: {fillColor: 'rgba(0, 150, 0, .4)', lineWidth: 1}
+        style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
       }
     )
     map.removeObject(polyline)
@@ -124,6 +163,8 @@ function loadMap() {
     map.removeLayer(clusteringLayer)
     startClustering(map, markers, polygon)
     console.log(result)  //  output result
+    cancelDrawButton.style.display = 'none'
+    drawButton.style.display = 'block'
   }
 
   function removePolygon() {
@@ -139,7 +180,7 @@ function loadMap() {
 
     map.removeLayer(clusteringLayer)
     startClustering(map, markers)
-    poligonControl.setDisabled(false)
+    //poligonControl.setDisabled(false)
     result = []
   }
 
@@ -207,7 +248,7 @@ function loadMap() {
    *  Create Control Button
    * 
    */
-
+/*
   var inherits = function(childCtor, parentCtor) {   
     function tempCtor() {}  
     tempCtor.prototype = parentCtor.prototype;   
@@ -254,7 +295,7 @@ function loadMap() {
 
     var poligonControl = new PoligonControl(); 
     ui.addControl('poligonControl', poligonControl);
-
+*/
   /**
    * 
    *  End Create Control Button
