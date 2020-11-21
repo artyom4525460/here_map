@@ -56,7 +56,6 @@ function loadMap() {
 
   var drawButton = document.getElementById('drawButton')
   var cancelDrawButton = document.getElementById('cancelDrawButton')
-  console.log(drawButton)
   drawButton.addEventListener('click', function(e){
     e.preventDefault()
     if(polygon !== null){
@@ -141,7 +140,6 @@ function loadMap() {
         style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
       })
     }*/
-    console.log(poligonMarkers)
     if( poligonMarkers.length == 2 ){
       /*polyline = new H.map.Polyline(
         lineCoords, { style: { lineWidth: 2, strokeColor: 'rgb(150,150,150)' }}
@@ -160,7 +158,7 @@ function loadMap() {
     }
     if( poligonMarkers.length == 1 ){
       let coord = map.screenToGeo(evt.currentPointer.viewportX, evt.currentPointer.viewportY);
-      console.log(lineCoords)
+
       if(lineCoords.getLatLngAltArray().length == 3){
         lineCoords.pushLatLngAlt(coord.lat.toFixed(4), coord.lng.toFixed(4), 0)
         polyline = new H.map.Polyline(
@@ -178,10 +176,8 @@ function loadMap() {
 
 
     if(poligonMarkers.length > 1){
-      console.log('move2')
       let coord = map.screenToGeo(evt.currentPointer.viewportX, evt.currentPointer.viewportY);
-      console.log( (lineCoords.getLatLngAltArray().length / 3), poligonMarkers.length)
-
+      
       if((lineCoords.getLatLngAltArray().length / 3) == poligonMarkers.length){
         lineCoords.pushLatLngAlt(coord.lat.toFixed(4), coord.lng.toFixed(4), 0)
         if(polygon === null){
@@ -199,10 +195,8 @@ function loadMap() {
             style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
           })
         }
-        console.log(lineCoords)
       }
       else{
-      console.log('lineCoords')
         if(polygon === null){
           polygon = new H.map.Polygon(
             new H.geo.Polygon(lineCoords),
@@ -216,7 +210,6 @@ function loadMap() {
         lineCoords.removeLatLngAlt(lineCoords.getLatLngAltArray().length - 3)
         lineCoords.pushLatLngAlt(coord.lat.toFixed(4), coord.lng.toFixed(4), 0)
         nextPoint = false
-        console.log(lineCoords.getLatLngAltArray())
         polygon.setGeometry(new H.geo.Polygon(lineCoords),
         {
           style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
@@ -247,7 +240,6 @@ function loadMap() {
 
   function finishPolygon(){
     finishedPolygon = true
-    console.log(lineCoords)
     polygon.setGeometry(new H.geo.Polygon(lineCoords),
     {
       style: {fillColor: 'rgba(0, 50, 50, .4)', lineWidth: 1}
