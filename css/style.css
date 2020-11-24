@@ -15,6 +15,11 @@ body{
     height: 100%;
 }
 
+#map{
+    width: 100%;
+    height: 100%;
+}
+
 #drawButton, #cancelDrawButton{
     background-color: #fff;
     color: #B62682;

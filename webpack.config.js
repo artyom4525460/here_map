@@ -2,9 +2,9 @@ const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
-  entry: './js/script.js',
+  entry: './js/mapbox.js',
   output: {
-    filename: 'script.js',
+    filename: 'mapbox.js',
     path: path.resolve(__dirname, 'dist'),
   },
 };
