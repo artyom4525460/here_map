@@ -1,19 +1,19 @@
 import * as data from './sample.json'
 import { config } from './config'
+import _ from 'lodash'
 
 const markers = data.result
 
 mapboxgl.accessToken = config.mapbox_token;
 var map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
-    center: [-3.60, 40.40], // starting position [lng, lat]
-    zoom: 9 // starting zoom
+    style: 'mapbox://styles/mapbox/streets-v9',
+    center: [-3.60, 40.40],
+    zoom: 9
 });
 
 var markersLayer
 var filterMarkersLayer
-//var globalFeatures = []
 
 var globalFeatures = markers.map(function(item){
     return {
@@ -28,54 +28,53 @@ var globalFeatures = markers.map(function(item){
     }
 })
 
-map.on('load', function () {
-    // Add an image to use as a custom marker
-    map.loadImage(
-        'https://upload.wikimedia.org/wikipedia/commons/1/11/Pan_Green_Circle.png',
-        function (error, image) {
-            if (error) throw error;
-            map.addImage('custom-marker', image);
-            // Add a GeoJSON source with 2 points
-            map.addSource('points', {
-                'type': 'geojson',
-                'data': {
-                    'type': 'FeatureCollection',
-                    'features': globalFeatures
-                }
-            });
+var points = []
 
-            markersLayer = {
-                'id': 'points',
-                'type': 'symbol',
-                'source': 'points',
-                'layout': {
-                    'icon-image': 'custom-marker',
-                    "icon-size": 0.02,
-                    // get the title name from the source's "title" property
-                    'text-field': ['get', 'title'],
-                    'text-font': [
-                        'Open Sans Semibold',
-                        'Arial Unicode MS Bold'
-                    ],
-                    'text-offset': [0, 1.25],
-                    'text-anchor': 'top'
-                }
-            }
-            
-            // Add a symbol layer
-            map.addLayer(markersLayer)
-        }
-    );
+map.on('load', function () {
+    map.addSource('points', {
+        'type': 'geojson',
+        'data': {
+            'type': 'FeatureCollection',
+            'features': globalFeatures
+        },
+        'generateId': true
+    });
+
+    markersLayer = {
+        'id': 'points',
+        'type': 'circle',
+        'source': 'points',
+
+        'paint': {
+            'circle-radius': 6,
+            'circle-color': '#00aa00',
+            'circle-stroke-color': 'white',
+            'circle-stroke-width': 1,
+            'circle-opacity': 0.8
+        },
+        'filter': ['==', '$type', 'Point']
+    }
+    
+    map.addLayer(markersLayer)
+});
+
+
+
+const NewSimpleSelect = _.extend(MapboxDraw.modes.simple_select, {
+    dragMove() {}
+});
+  
+const NewDirectSelect = _.extend(MapboxDraw.modes.direct_select, {
+    dragFeature() {}
 });
 
 var draw = new MapboxDraw({
     displayControlsDefault: false,
     controls: {
-        polygon: true,
-        trash: true
+        //polygon: true
     },
+    boxSelect: false,
     styles: [
-        // Set the line style for the user-input coordinates
         {
           "id": "gl-draw-line",
           "type": "line",
@@ -90,21 +89,19 @@ var draw = new MapboxDraw({
             "line-opacity": 0.7,
           }
         },
-        // Style the vertex point halos
         {
           "id": "gl-draw-polygon-and-line-vertex-halo-active",
           "type": "circle",
           "paint": {
-            "circle-radius": 12,
+            "circle-radius": 0,
             "circle-color": "#FFF"
           }
         },
-        // Style the vertex points
         {
           "id": "gl-draw-polygon-and-line-vertex-active",
           "type": "circle",
           "paint": {
-            "circle-radius": 8,
+            "circle-radius": 0,
             "circle-color": "#438EE4",
           }
         },
@@ -115,16 +112,45 @@ var draw = new MapboxDraw({
                 'fill-color': '#D20C0C',
                 'fill-outline-color': '#D20C0C',
                 'fill-opacity': 0.1,
+                
             },
         }
-      ]
+      ],
+      modes: {
+        ...MapboxDraw.modes,
+        simple_select: NewSimpleSelect,
+        direct_select: NewDirectSelect
+      }
 });
 
 map.addControl(draw);
+
+map.on('mousemove', 'gl-draw-polygon-fill', function(){
+    map.getCanvas().style.cursor = 'pointer';
+})
     
 map.on('draw.create', drawCreate);
 map.on('draw.delete', drawDelete);
 map.on('draw.update', drawUpdate);
+
+var pointID = null;
+map.on('mousemove', 'points', (e) => {
+    if(draw.getMode() == 'simple_select'){
+        pointID = e.features[0].id
+        map.getCanvas().style.cursor = 'pointer'
+    }
+})
+
+map.on('click', (e) => {
+    if(pointID){
+        console.log(e.lngLat)
+    }
+})
+
+map.on("mouseleave", "points", function() {
+    pointID = null
+    map.getCanvas().style.cursor = ''
+})
     
 function updateArea(e) {
     var data = draw.getAll();
@@ -139,17 +165,44 @@ function drawUpdate(e){
 
 function drawCreate(e){
     poligonCreate = true
-    drawPoligonButton[0].disabled = true;
-    filterMarkers()
+    createCloseMarker()
+    //map.moveLayer(yourLandmarkLayerId, someAnotheLayerId);
+    //console.log(map.getStyle().layers);
+    //var layerId = layers[i].id;
+    //draw.boxSelect();
+    //draw.deleteAll()
+    createdPolygone()
+}
+
+
+var el = document.createElement('div')
+var closeMarker
+var createCloseMarker = function()
+{
+    el.className = 'close-marker'
+    el.style.backgroundImage ='url("https://www.freeiconspng.com/thumbs/close-button-png/black-circle-close-button-png-5.png")';
+    el.style.width = '20px';
+    el.style.height = '20px';
+    
+    el.addEventListener('click', drawDelete);
+    
+    closeMarker = new mapboxgl.Marker(el)
+        .setLngLat(draw.getAll().features[0].geometry.coordinates[0][0])
+        .addTo(map);
 }
 
 function drawDelete(e){
 
     poligonCreate = false
-    drawPoligonButton[0].disabled = false;
 
     map.removeLayer('filteredPoints')
     map.removeSource('filteredPoints')
+    drawButton.style.display = "block"
+    cancelDrawButton.style.display = 'none'
+    closeMarker.remove()
+    
+    map.removeLayer('resultPolygone')
+    map.removeSource('maine')
     map.addLayer(markersLayer)
 }
 
@@ -158,24 +211,23 @@ map.on('click', 'drag', function (e) {
 })
 
 
-var drawPoligonButton = document.getElementsByClassName('mapbox-gl-draw_ctrl-draw-btn mapbox-gl-draw_polygon');
+//var drawPoligonButton = document.getElementsByClassName('mapbox-gl-draw_ctrl-draw-btn mapbox-gl-draw_polygon');
 
-//console.log(drawPoligonButton[0])
 var poligonCreate = false
-drawPoligonButton[0].addEventListener('click', function(e){
+/*drawPoligonButton[0].addEventListener('click', function(e){
     if(poligonCreate){
         console.log('already created')
     }
     else{
         map.removeLayer('points')
     }
-})
+})*/
 
 
 var filteredFeatures
 var filteredMarkersLayer
 
-function filterMarkers(){
+function filterMarkers(coords){
 
     let filteredMarkers = markers.filter(function(item) {
         if(
@@ -184,7 +236,7 @@ function filterMarkers(){
               [item.longitude, item.latitude]
             ),
             turf.polygon(
-              [draw.getAll().features[0].geometry.coordinates[0]]
+              [coords]
             )
           )
         ){
@@ -215,27 +267,105 @@ function filterMarkers(){
         'data': {
             'type': 'FeatureCollection',
             'features': filteredFeatures
-        }
+        },
+        'generateId': true
     });
 
     filteredMarkersLayer = {
         'id': 'filteredPoints',
-        'type': 'symbol',
+        'type': 'circle',
         'source': 'filteredPoints',
-        'layout': {
-            'icon-image': 'custom-marker',
-            "icon-size": 0.02,
-            // get the title name from the source's "title" property
-            'text-field': ['get', 'title'],
-            'text-font': [
-                'Open Sans Semibold',
-                'Arial Unicode MS Bold'
-            ],
-            'text-offset': [0, 1.25],
-            'text-anchor': 'top'
-        }
+        'paint': {
+            'circle-radius': 6,
+            'circle-color': '#00aa00',
+            'circle-stroke-color': 'white',
+            'circle-stroke-width': 1,
+            'circle-opacity': 0.8
+        },
     }
     
-    // Add a symbol layer
     map.addLayer(filteredMarkersLayer)
+
+    //filteredPoints
+    let pointID = null
+    map.on('mousemove', 'filteredPoints', (e) => {
+        if(draw.getMode() == 'simple_select'){
+            pointID = e.features[0].id
+            map.getCanvas().style.cursor = 'pointer'
+        }
+    })
+    
+    map.on('click', (e) => {
+        if(pointID){
+            console.log(e.lngLat)
+        }
+    })
+    
+    map.on("mouseleave", "filteredPoints", function() {
+        pointID = null
+        map.getCanvas().style.cursor = ''
+    })
+
+}
+
+
+var drawButton = document.getElementById('drawButton')
+var cancelDrawButton = document.getElementById('cancelDrawButton')
+
+drawButton.addEventListener('click', function(e){
+    draw.changeMode('draw_polygon');
+    if(!poligonCreate){
+        map.removeLayer('points')
+    }
+    drawButton.style.display = "none"
+    cancelDrawButton.style.display = 'block'
+})
+
+cancelDrawButton.addEventListener('click', function(e){
+    drawDelete(e)
+})
+
+  
+var resultPolygone
+
+let createdPolygone = function(){
+    let coords = draw.getAll().features[0].geometry.coordinates[0]
+    /*let coords = draw.getAll().features[0].geometry.coordinates[0].map(function(coord){
+        return {
+            longitude : coord.longitude,
+            latitude : coord.latitude
+        }
+    })
+    console.log(coords)*/
+    map.addSource('maine', {
+        'type': 'geojson',
+        'data': {
+            'type': 'Feature',
+            'geometry': {
+                'type': 'Polygon',
+                'coordinates': [
+                    
+                        draw.getAll().features[0].geometry.coordinates[0]
+                    
+                ]
+            }
+        }
+    });
+
+    resultPolygone = {
+        'id': 'resultPolygone',
+        'type': 'fill',
+        'source': 'maine',
+        'layout': {},
+        'paint': {
+            'fill-color': '#088',
+            'fill-opacity': 0.8
+        }
+    }
+
+    map.addLayer(resultPolygone);
+
+    draw.deleteAll()
+
+    filterMarkers(coords)    
 }

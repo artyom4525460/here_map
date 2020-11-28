@@ -57,3 +57,12 @@ body{
     box-shadow: none;
     color: #141414;
 }
+
+.close-marker{
+    display: block;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    background-size: cover;
+}
