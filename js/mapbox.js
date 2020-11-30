@@ -165,30 +165,61 @@ function drawUpdate(e){
 
 function drawCreate(e){
     poligonCreate = true
-    createCloseMarker()
     //map.moveLayer(yourLandmarkLayerId, someAnotheLayerId);
     //console.log(map.getStyle().layers);
     //var layerId = layers[i].id;
     //draw.boxSelect();
     //draw.deleteAll()
+    createCloseMarker()
     createdPolygone()
 }
+var allowSetMarker = true
+map.on('click', function(){
+    if(draw.getMode() == 'draw_polygon'){
+        createFirstMarker()
+        allowSetMarker = false
+    }
+})
 
 
 var el = document.createElement('div')
-var closeMarker
-var createCloseMarker = function()
+var closeMarker, firstMarker
+
+var createFirstMarker = function()
 {
     el.className = 'close-marker'
-    el.style.backgroundImage ='url("https://www.freeiconspng.com/thumbs/close-button-png/black-circle-close-button-png-5.png")';
-    el.style.width = '20px';
-    el.style.height = '20px';
+    el.style.backgroundColor = '#ffffff'
+    el.style.backgroundImage = 'none'
+    el.style.width = '12px'
+    el.style.height = '12px'
+    el.style.borderRadius = '10px'
+    el.style.border = '2px solid #000000'
     
-    el.addEventListener('click', drawDelete);
+    el.addEventListener('click', function(){
+        console.log('click marker')
+    });
+    
+    firstMarker = new mapboxgl.Marker(el)
+        .setLngLat(draw.getAll().features[0].geometry.coordinates[0][0])
+        .addTo(map)
+}
+
+var createCloseMarker = function()
+{
+    
+    firstMarker.remove()
+    el.className = 'close-marker'
+    el.style.border = '0'
+    el.style.backgroundColor = 'none'
+    el.style.backgroundImage ='url("https://www.freeiconspng.com/thumbs/close-button-png/black-circle-close-button-png-5.png")'
+    el.style.width = '20px'
+    el.style.height = '20px'
+    
+    el.addEventListener('click', drawDelete)
     
     closeMarker = new mapboxgl.Marker(el)
         .setLngLat(draw.getAll().features[0].geometry.coordinates[0][0])
-        .addTo(map);
+        .addTo(map)
 }
 
 function drawDelete(e){
