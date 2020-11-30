@@ -174,6 +174,7 @@ function drawCreate(e){
     createdPolygone()
 }
 var allowSetMarker = true
+var allowSetMarker = true
 map.on('click', function(){
     if(draw.getMode() == 'draw_polygon'){
         createFirstMarker()
@@ -184,6 +185,7 @@ map.on('click', function(){
 
 var el = document.createElement('div')
 var closeMarker, firstMarker
+var allowDelete = false
 
 var createFirstMarker = function()
 {
@@ -196,7 +198,6 @@ var createFirstMarker = function()
     el.style.border = '2px solid #000000'
     
     el.addEventListener('click', function(){
-        console.log('click marker')
     });
     
     firstMarker = new mapboxgl.Marker(el)
@@ -215,26 +216,37 @@ var createCloseMarker = function()
     el.style.width = '20px'
     el.style.height = '20px'
     
-    el.addEventListener('click', drawDelete)
-    
     closeMarker = new mapboxgl.Marker(el)
         .setLngLat(draw.getAll().features[0].geometry.coordinates[0][0])
         .addTo(map)
+
+    el.addEventListener('click', drawDelete)
+
+    setInterval(function(){
+        allowDelete = true
+        clearInterval()
+    }, 20)
 }
 
 function drawDelete(e){
+    if(allowDelete){
+        poligonCreate = false
 
-    poligonCreate = false
+        map.removeLayer('filteredPoints')
+        map.removeSource('filteredPoints')
+        drawButton.style.display = "block"
+        cancelDrawButton.style.display = 'none'
+        closeMarker.remove()
+        
+        map.removeLayer('resultPolygone')
+        map.removeSource('maine')
+        map.addLayer(markersLayer)
 
-    map.removeLayer('filteredPoints')
-    map.removeSource('filteredPoints')
-    drawButton.style.display = "block"
-    cancelDrawButton.style.display = 'none'
-    closeMarker.remove()
-    
-    map.removeLayer('resultPolygone')
-    map.removeSource('maine')
-    map.addLayer(markersLayer)
+        setInterval(function(){
+            allowDelete = false
+            clearInterval()
+        }, 20)
+    }
 }
 
 map.on('click', 'drag', function (e) {
